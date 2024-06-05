@@ -39,12 +39,12 @@ func (h *Handler) Hello() {
 	h.stats.IncHello()
 }
 
-func (h *Handler) Reset() stats.StatsResponse {
+func (h *Handler) Reset() stats.Response {
 	h.stats.Reset()
 	return h.Stats()
 }
 
-func (h *Handler) Stats() stats.StatsResponse {
+func (h *Handler) Stats() stats.Response {
 	return h.stats.Response()
 }
 

@@ -107,33 +107,33 @@ func (s *Stats) Reset() {
 	s.order500.Store(0)
 }
 
-type StatsResponse struct {
-	Auth  StatisticBodyResponse `json:"auth,omitempty"`
-	List  StatisticBodyResponse `json:"list,omitempty"`
-	Order StatisticBodyResponse `json:"order,omitempty"`
-	Hello int64                 `json:"hello,omitempty"`
+type Response struct {
+	Auth  Body  `json:"auth,omitempty"`
+	List  Body  `json:"list,omitempty"`
+	Order Body  `json:"order,omitempty"`
+	Hello int64 `json:"hello,omitempty"`
 }
 
-type StatisticBodyResponse struct {
+type Body struct {
 	Code200 map[int64]uint64 `json:"code200,omitempty"`
 	Code400 uint64           `json:"code400,omitempty"`
 	Code500 uint64           `json:"code500,omitempty"`
 }
 
-func (s *Stats) Response() StatsResponse {
-	return StatsResponse{
+func (s *Stats) Response() Response {
+	return Response{
 		Hello: int64(s.hello.Load()),
-		Auth: StatisticBodyResponse{
+		Auth: Body{
 			Code200: s.auth200,
 			Code400: s.auth400.Load(),
 			Code500: s.auth500.Load(),
 		},
-		List: StatisticBodyResponse{
+		List: Body{
 			Code200: s.list200,
 			Code400: s.list400.Load(),
 			Code500: s.list500.Load(),
 		},
-		Order: StatisticBodyResponse{
+		Order: Body{
 			Code200: s.order200,
 			Code400: s.order400.Load(),
 			Code500: s.order500.Load(),

@@ -19,8 +19,8 @@ func TestHTTPSuite(t *testing.T) {
 
 type HTTPSuite struct {
 	suite.Suite
-	server *httpmock.Server
-	addr   string
+	addr string
+	mock *httpmock.Server
 }
 
 func (s *HTTPSuite) SetupSuite() {
@@ -30,28 +30,28 @@ func (s *HTTPSuite) SetupSuite() {
 	}
 	s.addr = "localhost:" + port
 	log := logger.New()
-	s.server = httpmock.NewServer(s.addr, log, time.Now().UnixNano())
-	s.server.ServeAsync()
+	s.mock = httpmock.NewServer(s.addr, log, time.Now().UnixNano())
+	s.mock.ServeAsync()
 
 	go func() {
-		err := <-s.server.Err()
+		err := <-s.mock.Err()
 		s.NoError(err)
 	}()
 }
 
 func (s *HTTPSuite) TearDownSuite() {
-	err := s.server.Shutdown(context.Background())
+	err := s.mock.Shutdown(context.Background())
 	s.NoError(err)
 }
 
 func (s *HTTPSuite) SetupTest() {
-	s.server.Stats().Reset()
+	s.mock.Stats().Reset()
 }
 
-func (s *HTTPSuite) Test_SuccessScenario() {
+func (s *HTTPSuite) Test_Hello() {
 	_, err := http.Get("http://" + s.addr + "/hello")
 	s.NoError(err)
 
-	stats := s.server.Stats().Response()
+	stats := s.mock.Stats().Response()
 	s.Equal(int64(1), stats.Hello)
 }
