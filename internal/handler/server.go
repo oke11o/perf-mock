@@ -56,7 +56,7 @@ func (h *Handler) Auth(login string, pass string) (AuthResponse, error) {
 	}
 	h.stats.IncAuth200(userID)
 	return AuthResponse{
-		UserId: userID,
+		UserID: userID,
 		Token:  token,
 	}, nil
 }
@@ -111,13 +111,17 @@ func (h *Handler) Order(token string, userID int64, ItemId int64) (*OrderRespons
 	return result, nil
 }
 
+func (h *Handler) ExtStats(login string, pass string) {
+
+}
+
 func (h *Handler) checkLoginPass(login string, pass string) (int64, string, error) {
+	if login != pass {
+		return 0, "", fmt.Errorf("invalid login %s or pass %s", login, pass)
+	}
 	userID, err := strconv.ParseInt(login, 10, 64)
 	if err != nil {
 		return 0, "", fmt.Errorf("invalid login %s", login)
-	}
-	if login != pass {
-		return 0, "", fmt.Errorf("invalid login %s or pass %s", login, pass)
 	}
 	token := ""
 	h.mu.RLock()

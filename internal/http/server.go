@@ -135,54 +135,35 @@ func (s *Server) helloHandler(w http.ResponseWriter, r *http.Request) {
 func (s *Server) authHandler(w http.ResponseWriter, r *http.Request) {
 	code, err := checkContentTypeAndMethod(r, []string{http.MethodPost})
 	if err != nil {
-		if code >= 500 {
-			s.stats.IncAuth500()
-		} else {
-			s.stats.IncAuth400()
-		}
+		s.stats.IncAuth400() // TODO:
 		http.Error(w, err.Error(), code)
 		return
 	}
 
 	user := struct {
-		UserID int64 `json:"user_id"`
+		Login string `json:"login"`
+		Pass  string `json:"pass"`
 	}{}
 	err = json.NewDecoder(r.Body).Decode(&user)
 	if err != nil {
-		s.stats.IncAuth500()
+		s.stats.IncAuth400() // TODO:
 		http.Error(w, "Incorrect body", http.StatusNotAcceptable)
 		return
 	}
-	if user.UserID > userCount {
-		s.stats.IncAuth400()
-		http.Error(w, "Incorrect user_id", http.StatusBadRequest)
+	res, err := s.handler.Auth(user.Login, user.Pass)
+	if err != nil {
+		http.Error(w, "Incorrect body", http.StatusNotAcceptable)
 		return
 	}
 
-	s.stats.IncAuth200(user.UserID)
-
-	var authKey string
-	s.mu.RLock()
-	for k, v := range s.keys {
-		if v == user.UserID {
-			authKey = k
-			break
-		}
-	}
-	s.mu.RUnlock()
-
 	w.Header().Set("Content-Type", "application/json")
-	_, _ = w.Write([]byte(fmt.Sprintf(`{"auth_key": "%s"}`, authKey)))
+	_, _ = w.Write([]byte(fmt.Sprintf(`{"token": "%s","user_id":"%d"}`, res.Token, res.UserID)))
 }
 
 func (s *Server) listHandler(w http.ResponseWriter, r *http.Request) {
 	code, err := checkContentTypeAndMethod(r, []string{http.MethodGet})
 	if err != nil {
-		if code >= 500 {
-			s.stats.IncList500()
-		} else {
-			s.stats.IncList400()
-		}
+		s.stats.IncList400()
 		http.Error(w, err.Error(), code)
 		return
 	}

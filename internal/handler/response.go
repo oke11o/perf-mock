@@ -1,7 +1,7 @@
 package handler
 
 type AuthResponse struct {
-	UserId int64  `json:"user_id,omitempty"`
+	UserID int64  `json:"user_id,omitempty"`
 	Token  string `json:"token,omitempty"`
 }
 

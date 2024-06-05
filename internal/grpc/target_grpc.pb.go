@@ -27,7 +27,7 @@ type TargetServiceClient interface {
 	List(ctx context.Context, in *ListRequest, opts ...grpc.CallOption) (*ListResponse, error)
 	Order(ctx context.Context, in *OrderRequest, opts ...grpc.CallOption) (*OrderResponse, error)
 	Stats(ctx context.Context, in *StatsRequest, opts ...grpc.CallOption) (*StatsResponse, error)
-	Reset(ctx context.Context, in *ResetRequest, opts ...grpc.CallOption) (*ResetResponse, error)
+	Reset(ctx context.Context, in *ResetRequest, opts ...grpc.CallOption) (*StatsResponse, error)
 }
 
 type targetServiceClient struct {
@@ -83,8 +83,8 @@ func (c *targetServiceClient) Stats(ctx context.Context, in *StatsRequest, opts 
 	return out, nil
 }
 
-func (c *targetServiceClient) Reset(ctx context.Context, in *ResetRequest, opts ...grpc.CallOption) (*ResetResponse, error) {
-	out := new(ResetResponse)
+func (c *targetServiceClient) Reset(ctx context.Context, in *ResetRequest, opts ...grpc.CallOption) (*StatsResponse, error) {
+	out := new(StatsResponse)
 	err := c.cc.Invoke(ctx, "/target.TargetService/Reset", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -101,7 +101,7 @@ type TargetServiceServer interface {
 	List(context.Context, *ListRequest) (*ListResponse, error)
 	Order(context.Context, *OrderRequest) (*OrderResponse, error)
 	Stats(context.Context, *StatsRequest) (*StatsResponse, error)
-	Reset(context.Context, *ResetRequest) (*ResetResponse, error)
+	Reset(context.Context, *ResetRequest) (*StatsResponse, error)
 	mustEmbedUnimplementedTargetServiceServer()
 }
 
@@ -124,7 +124,7 @@ func (UnimplementedTargetServiceServer) Order(context.Context, *OrderRequest) (*
 func (UnimplementedTargetServiceServer) Stats(context.Context, *StatsRequest) (*StatsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Stats not implemented")
 }
-func (UnimplementedTargetServiceServer) Reset(context.Context, *ResetRequest) (*ResetResponse, error) {
+func (UnimplementedTargetServiceServer) Reset(context.Context, *ResetRequest) (*StatsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Reset not implemented")
 }
 func (UnimplementedTargetServiceServer) mustEmbedUnimplementedTargetServiceServer() {}

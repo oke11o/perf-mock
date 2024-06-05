@@ -37,7 +37,7 @@ func (s *GRPCServer) Auth(_ context.Context, request *AuthRequest) (*AuthRespons
 		return nil, status.Error(codes.InvalidArgument, "invalid credentials")
 	}
 	return &AuthResponse{
-		UserId: res.UserId,
+		UserId: res.UserID,
 		Token:  res.Token,
 	}, nil
 }
@@ -87,10 +87,10 @@ func (s *GRPCServer) Stats(ctx context.Context, _ *StatsRequest) (*StatsResponse
 	return result, nil
 }
 
-func (s *GRPCServer) Reset(ctx context.Context, _ *ResetRequest) (*ResetResponse, error) {
+func (s *GRPCServer) Reset(ctx context.Context, _ *ResetRequest) (*StatsResponse, error) {
 	ss := s.handler.Reset()
 
-	result := &ResetResponse{
+	result := &StatsResponse{
 		Auth: &StatisticBodyResponse{
 			Code200: ss.Auth.Code200,
 			Code400: ss.Auth.Code400,

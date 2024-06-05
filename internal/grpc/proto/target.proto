@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package target;
 
-option go_package = "server.v1;server";
+option go_package = "server.v1;grpc";
 
 service TargetService {
   rpc Hello(HelloRequest) returns (HelloResponse);
@@ -10,7 +10,7 @@ service TargetService {
   rpc List(ListRequest) returns (ListResponse);
   rpc Order(OrderRequest) returns (OrderResponse);
   rpc Stats(StatsRequest) returns (StatsResponse);
-  rpc Reset(ResetRequest) returns (ResetResponse);
+  rpc Reset(ResetRequest) returns (StatsResponse);
 }
 
 message HelloRequest {
@@ -53,6 +53,8 @@ message OrderResponse {
   int64 order_id = 1;
 }
 
+message ResetRequest {}
+
 message StatsRequest {}
 
 message StatsResponse {
@@ -68,11 +70,6 @@ message StatisticBodyResponse  {
   uint64 Code500 = 3;
 }
 
-message ResetRequest {}
 
-message ResetResponse {
-  StatisticBodyResponse Auth = 1;
-  StatisticBodyResponse List = 2;
-  StatisticBodyResponse Order = 3;
-}
+
 
