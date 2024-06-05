@@ -53,5 +53,5 @@ func (s *HTTPSuite) Test_SuccessScenario() {
 	s.NoError(err)
 
 	stats := s.server.Stats().Response()
-	s.Equal(map[int64]uint64{1: 3, 2: 3, 3: 3}, stats.Order)
+	s.Equal(int64(1), stats.Hello)
 }

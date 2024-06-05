@@ -13,9 +13,10 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/oke11o/perf-mock/internal/stats"
-
 	"github.com/yandex/pandora/lib/str"
+
+	"github.com/oke11o/perf-mock/internal/handler"
+	"github.com/oke11o/perf-mock/internal/stats"
 )
 
 const (
@@ -45,6 +46,74 @@ func checkContentTypeAndMethod(r *http.Request, methods []string) (int, error) {
 	return http.StatusMethodNotAllowed, errors.New("method not allowed")
 }
 
+func NewServer(addr string, log *slog.Logger, seed int64) *Server {
+	keys := make(map[string]int64, userCount)
+	for i := int64(1); i <= userCount; i++ {
+		keys[str.RandStringRunes(64, "")] = i
+	}
+
+	newStats := stats.NewStats(userCount)
+	handle := handler.New(newStats)
+	result := &Server{Log: log, stats: newStats, keys: keys, handler: handle}
+	mux := http.NewServeMux()
+
+	mux.Handle("/hello", http.HandlerFunc(result.helloHandler))
+	mux.Handle("/auth", http.HandlerFunc(result.authHandler))
+	mux.Handle("/list", http.HandlerFunc(result.listHandler))
+	mux.Handle("/order", http.HandlerFunc(result.orderHandler))
+	mux.Handle("/stats", http.HandlerFunc(result.statisticHandler))
+	mux.Handle("/reset", http.HandlerFunc(result.resetHandler))
+
+	ctx := context.Background()
+	result.srv = &http.Server{
+		Addr:    addr,
+		Handler: mux,
+		BaseContext: func(l net.Listener) context.Context {
+			return ctx
+		},
+	}
+	log.Info("New server created", slog.String("addr", addr), slog.Any("keys", keys))
+
+	return result
+}
+
+type Server struct {
+	srv     *http.Server
+	handler *handler.Handler
+
+	Log   *slog.Logger
+	stats *stats.Stats
+	keys  map[string]int64
+	mu    sync.RWMutex
+
+	runErr chan error
+	finish bool
+}
+
+func (s *Server) Err() <-chan error {
+	return s.runErr
+}
+
+func (s *Server) ServeAsync() {
+	go func() {
+		err := s.srv.ListenAndServe()
+		if err != nil {
+			s.runErr <- err
+		} else {
+			s.runErr <- nil
+		}
+		s.finish = true
+	}()
+}
+
+func (s *Server) Shutdown(ctx context.Context) error {
+	return s.srv.Shutdown(ctx)
+}
+
+func (s *Server) Stats() *stats.Stats {
+	return s.stats
+}
+
 func (s *Server) checkAuthorization(r *http.Request) (int64, int, error) {
 	authHeader := r.Header.Get("Authorization")
 	authHeader = strings.Replace(authHeader, "Bearer ", "", 1)
@@ -59,7 +128,7 @@ func (s *Server) checkAuthorization(r *http.Request) (int64, int, error) {
 }
 
 func (s *Server) helloHandler(w http.ResponseWriter, r *http.Request) {
-	s.Stats().IncHello()
+	s.handler.Hello()
 	w.Write([]byte("OK"))
 }
 
@@ -199,69 +268,4 @@ func (s *Server) statisticHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	w.Header().Set("Content-Type", "application/json")
 	_, _ = w.Write(b)
-}
-
-func NewServer(addr string, log *slog.Logger, seed int64) *Server {
-	keys := make(map[string]int64, userCount)
-	for i := int64(1); i <= userCount; i++ {
-		keys[str.RandStringRunes(64, "")] = i
-	}
-
-	result := &Server{Log: log, stats: stats.NewStats(userCount), keys: keys}
-	mux := http.NewServeMux()
-
-	mux.Handle("/hello", http.HandlerFunc(result.helloHandler))
-	mux.Handle("/auth", http.HandlerFunc(result.authHandler))
-	mux.Handle("/list", http.HandlerFunc(result.listHandler))
-	mux.Handle("/order", http.HandlerFunc(result.orderHandler))
-	mux.Handle("/stats", http.HandlerFunc(result.statisticHandler))
-	mux.Handle("/reset", http.HandlerFunc(result.resetHandler))
-
-	ctx := context.Background()
-	result.srv = &http.Server{
-		Addr:    addr,
-		Handler: mux,
-		BaseContext: func(l net.Listener) context.Context {
-			return ctx
-		},
-	}
-	log.Info("New server created", slog.String("addr", addr), slog.Any("keys", keys))
-
-	return result
-}
-
-type Server struct {
-	srv *http.Server
-
-	Log   *slog.Logger
-	stats *stats.Stats
-	keys  map[string]int64
-	mu    sync.RWMutex
-
-	runErr chan error
-	finish bool
-}
-
-func (s *Server) Err() <-chan error {
-	return s.runErr
-}
-
-func (s *Server) ServeAsync() {
-	go func() {
-		err := s.srv.ListenAndServe()
-		if err != nil {
-			s.runErr <- err
-		} else {
-			s.runErr <- nil
-		}
-		s.finish = true
-	}()
-}
-
-func (s *Server) Shutdown(ctx context.Context) error {
-	return s.srv.Shutdown(ctx)
-}
-
-func (s *Server) Stats() *stats.Stats {
-	return s.stats
 }
