@@ -46,14 +46,12 @@ func checkContentTypeAndMethod(r *http.Request, methods []string) (int, error) {
 	return http.StatusMethodNotAllowed, errors.New("method not allowed")
 }
 
-func NewServer(addr string, log *slog.Logger, seed int64) *Server {
+func NewServer(addr string, log *slog.Logger, newStats *stats.Stats, handle *handler.Handler) *Server {
 	keys := make(map[string]int64, userCount)
 	for i := int64(1); i <= userCount; i++ {
 		keys[str.RandStringRunes(64, "")] = i
 	}
 
-	newStats := stats.NewStats(userCount)
-	handle := handler.New(newStats)
 	result := &Server{Log: log, stats: newStats, keys: keys, handler: handle}
 	mux := http.NewServeMux()
 

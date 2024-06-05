@@ -5,9 +5,11 @@ import (
 	"net/http"
 	"os"
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/suite"
+
+	"github.com/oke11o/perf-mock/internal/handler"
+	"github.com/oke11o/perf-mock/internal/stats"
 
 	httpmock "github.com/oke11o/perf-mock/internal/http"
 	"github.com/oke11o/perf-mock/internal/logger"
@@ -30,7 +32,8 @@ func (s *HTTPSuite) SetupSuite() {
 	}
 	s.addr = "localhost:" + port
 	log := logger.New()
-	s.mock = httpmock.NewServer(s.addr, log, time.Now().UnixNano())
+	newStats := stats.NewStats(10)
+	s.mock = httpmock.NewServer(s.addr, log, newStats, handler.New(newStats))
 	s.mock.ServeAsync()
 
 	go func() {
