@@ -44,7 +44,7 @@ jobs:
         run: |
           export GOARCH=${{ matrix.arch }}
           export CGO_ENABLED=0
-          go build -o perfmock_${STRIPPED_TAG}_${GOOS}_${{ matrix.arch }}
+          go build -o perfmock_${STRIPPED_TAG}_${GOOS}_${{ matrix.arch }} cmd/perfmock/main.go
 
       - name: Release
         uses: softprops/action-gh-release@v1
