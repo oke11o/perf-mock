@@ -6,6 +6,7 @@ import (
 	"log/slog"
 	"strconv"
 	"sync"
+	"time"
 
 	"github.com/yandex/pandora/lib/str"
 	"google.golang.org/grpc/codes"
@@ -35,8 +36,14 @@ type Handler struct {
 	mu    sync.RWMutex
 }
 
-func (h *Handler) Hello() {
-	h.stats.IncHello()
+func (h *Handler) Hello(name string, skipStats bool, sleep time.Duration) string {
+	if sleep > 0 {
+		time.Sleep(sleep)
+	}
+	if !skipStats {
+		h.stats.IncHello()
+	}
+	return fmt.Sprintf("Hello %s!", name)
 }
 
 func (h *Handler) Reset() stats.Response {

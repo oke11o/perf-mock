@@ -6,15 +6,15 @@ import (
 	"os"
 	"testing"
 
-	"github.com/oke11o/perf-mock/internal/handler"
-	"github.com/oke11o/perf-mock/internal/stats"
-
 	"github.com/stretchr/testify/suite"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
+	durationpb "google.golang.org/protobuf/types/known/durationpb"
 
 	grpcmock "github.com/oke11o/perf-mock/internal/grpc"
+	"github.com/oke11o/perf-mock/internal/handler"
 	"github.com/oke11o/perf-mock/internal/logger"
+	"github.com/oke11o/perf-mock/internal/stats"
 )
 
 func TestGRPCSuite(t *testing.T) {
@@ -75,7 +75,7 @@ func (s *GRPCSuite) TearDownTest() {
 }
 
 func (s *GRPCSuite) Test_SuccessScenario() {
-	res, err := s.client.Hello(context.Background(), &grpcmock.HelloRequest{Name: "John"})
+	res, err := s.client.Hello(context.Background(), &grpcmock.HelloRequest{Name: "John", Sleep: durationpb.New(0)})
 	s.NoError(err)
 	s.Equal("Hello John!", res.Hello)
 	s.Equal(int64(1), s.handler.Stats().Hello)

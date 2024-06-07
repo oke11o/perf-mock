@@ -2,7 +2,6 @@ package grpc
 
 import (
 	"context"
-	"fmt"
 	"log/slog"
 
 	"google.golang.org/grpc/codes"
@@ -25,9 +24,9 @@ type GRPCServer struct {
 var _ TargetServiceServer = (*GRPCServer)(nil)
 
 func (s *GRPCServer) Hello(ctx context.Context, request *HelloRequest) (*HelloResponse, error) {
-	s.handler.Hello()
+	res := s.handler.Hello(request.Name, request.SkipStats, request.Sleep.AsDuration())
 	return &HelloResponse{
-		Hello: fmt.Sprintf("Hello %s!", request.Name),
+		Hello: res,
 	}, nil
 }
 

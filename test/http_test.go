@@ -52,7 +52,7 @@ func (s *HTTPSuite) SetupTest() {
 }
 
 func (s *HTTPSuite) Test_Hello() {
-	_, err := http.Get("http://" + s.addr + "/hello")
+	_, err := http.Get("http://" + s.addr + "/hello?sleep=1s&name=tmp&skipStats=false")
 	s.NoError(err)
 
 	stats := s.mock.Stats().Response()

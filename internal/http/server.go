@@ -12,6 +12,7 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/yandex/pandora/lib/str"
 
@@ -126,8 +127,20 @@ func (s *Server) checkAuthorization(r *http.Request) (int64, int, error) {
 }
 
 func (s *Server) helloHandler(w http.ResponseWriter, r *http.Request) {
-	s.handler.Hello()
-	w.Write([]byte("OK"))
+	query := r.URL.Query()
+	sleep := query.Get("sleep")
+	var sleepDur time.Duration
+	if sleep != "" {
+		sleepDur, _ = time.ParseDuration(sleep)
+	}
+	skipStats := strings.ToLower(query.Get("skipStats"))
+	skipSt := true
+	if skipStats == "" || skipStats == "0" || skipStats == "false" {
+		skipSt = false
+	}
+	name := query.Get("name")
+	res := s.handler.Hello(name, skipSt, sleepDur)
+	w.Write([]byte(res))
 }
 
 func (s *Server) authHandler(w http.ResponseWriter, r *http.Request) {

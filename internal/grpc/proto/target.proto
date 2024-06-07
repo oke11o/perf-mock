@@ -1,5 +1,7 @@
 syntax = "proto3";
 
+import "google/protobuf/duration.proto";
+
 package target;
 
 option go_package = "server.v1;grpc";
@@ -15,6 +17,8 @@ service TargetService {
 
 message HelloRequest {
   string name = 1;
+  bool skipStats = 2;
+  google.protobuf.Duration sleep = 3;
 }
 
 message HelloResponse {
